@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static ru.ds.education.currency.config.ActiveMQConfig.REQUEST_QUEUE;
 
@@ -72,8 +73,10 @@ public class CurrencyServiceImpl implements CurrencyService {
             RequestMessageDto messageDto = new RequestMessageDto(name, date);
             jmsTemplate.convertAndSend(REQUEST_QUEUE, messageDto);
 
-            log.error("Поиск: валюта с именем " + name + " не найдена");
-            throw new ResourceNotFoundException("Валюты с именем " + name + " не существует");
+            log.info("Отправка запроса в адаптер для имени " + name + " на дату " + date);
+            return null;
+            /*log.error("Поиск: валюта с именем " + name + " не найдена");
+            throw new ResourceNotFoundException("Валюты с именем " + name + " не существует");*/
         }
 
         log.info("Получение валюты с именем " + name + ", дата - " + date);

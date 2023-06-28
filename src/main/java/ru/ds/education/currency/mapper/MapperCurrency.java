@@ -5,6 +5,7 @@ import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.ConfigurableMapper;
 import org.springframework.stereotype.Component;
 import ru.ds.education.currency.dto.CursDataDto;
+import ru.ds.education.currency.dto.message.ResponseMessageDto;
 import ru.ds.education.currency.model.CursDataModel;
 
 @Component
@@ -24,5 +25,11 @@ public class MapperCurrency extends ConfigurableMapper {
                 .byDefault()
                 .register();
 
+        factory.classMap(ResponseMessageDto.class, CursDataModel.class)
+                .mapNulls(true)
+                .field("currencyName", "currencyName")
+                .field("currencyRate", "curs")
+                .field("currencyDate", "cursDate")
+                .register();
     }
 }

@@ -5,11 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serializable;
+
 @Schema(description = "Сообщение, содержащее название валюты и необходимое время")
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class RequestMessageDto {
+public class RequestMessageDto implements Serializable {
     private String currencyName;
 
     private String currencyDate;

@@ -26,7 +26,7 @@ public class CursDataModel {
     @Column(name = "currency_name")
     private String currencyName;
 
-    @NotNull
+    @Nullable
     @Column(name = "currency_code")
     private Integer currencyCode;
 

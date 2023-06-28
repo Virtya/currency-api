@@ -13,19 +13,20 @@ import org.springframework.jms.support.converter.MessageType;
 @EnableJms
 public class ActiveMQConfig {
     public static final String REQUEST_QUEUE = "request-queue";
+    public static final String RESPONSE_QUEUE = "response-queue";
 
     @Bean
     public JmsListenerContainerFactory<?> queueListenerFactory() {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setMessageConverter(messageConverter());
+        /*factory.setMessageConverter(messageConverter());*/
         return factory;
     }
 
-    @Bean
+    /*@Bean
     public MessageConverter messageConverter() {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setTargetType(MessageType.TEXT);
         converter.setTypeIdPropertyName("_type");
         return converter;
-    }
+    }*/
 }

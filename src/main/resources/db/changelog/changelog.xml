@@ -8,5 +8,6 @@
 
     <include file="migrations/V2023_06_20_14_15_create_table.sql" relativeToChangelogFile="true"/>
     <include file="migrations/V2023_06_21_12_50_insert_values.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_06_28_12_00_alter_table_null_code.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
