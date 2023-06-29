@@ -1,18 +1,24 @@
 package ru.ds.education.currency.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import ru.ds.education.currency.dto.CursDataDto;
-import ru.ds.education.currency.dto.message.RequestMessageDto;
 import ru.ds.education.currency.exception.ResourceAlreadyExistException;
 import ru.ds.education.currency.exception.ResourceNotFoundException;
 import ru.ds.education.currency.mapper.MapperCurrency;
 import ru.ds.education.currency.model.CursDataModel;
 import ru.ds.education.currency.repository.CurrencyRepository;
 import ru.ds.education.currency.service.CurrencyService;
+import ru.ds.education.currency.service.QueueAddCurService;
 
+import javax.json.Json;
+import javax.json.JsonObject;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
@@ -28,6 +34,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     private final CurrencyRepository currencyRepository;
     private final MapperCurrency mapper;
+    private final QueueAddCurService queueAddCurService;
     private final JmsTemplate jmsTemplate;
 
     @Override
@@ -61,6 +68,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         return mapper.map(cursDataModel, CursDataDto.class);
     }
 
+    @SneakyThrows
     @Override
     public CursDataDto getCurrencyByNameAndDate(String name, String date) {
 
@@ -69,14 +77,20 @@ public class CurrencyServiceImpl implements CurrencyService {
 
         CursDataModel cursDataModel = currencyRepository.findByCurrencyNameAndCursDate(name, actualDate);
 
-        if (cursDataModel == null) {
-            RequestMessageDto messageDto = new RequestMessageDto(name, date);
-            jmsTemplate.convertAndSend(REQUEST_QUEUE, messageDto);
+        if (cursDataModel == null && !queueAddCurService.isExistQueuedCurrency(name, actualDate)) {
+
+            JsonObject jsonMessage = Json.createObjectBuilder()
+                    .add("name", name)
+                    .add("date", date)
+                    .build();
+
+            String message = jsonMessage.toString();
+
+            queueAddCurService.addQueuedCurrency(name, actualDate);
+            jmsTemplate.convertAndSend(REQUEST_QUEUE, message);
 
             log.info("Отправка запроса в адаптер для имени " + name + " на дату " + date);
             return null;
-            /*log.error("Поиск: валюта с именем " + name + " не найдена");
-            throw new ResourceNotFoundException("Валюты с именем " + name + " не существует");*/
         }
 
         log.info("Получение валюты с именем " + name + ", дата - " + date);
@@ -102,7 +116,6 @@ public class CurrencyServiceImpl implements CurrencyService {
         currencyRepository.save(cursDataModel);
 
         log.info("Создание валюты с именем " + newCur.getCurrencyName());
-
         return mapper.map(cursDataModel, CursDataDto.class);
     }
 

@@ -1,0 +1,2 @@
+ALTER TABLE curs_data
+    ALTER COLUMN curs TYPE NUMERIC(8, 2);
