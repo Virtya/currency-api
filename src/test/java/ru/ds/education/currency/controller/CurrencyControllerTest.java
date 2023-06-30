@@ -1,6 +1,7 @@
 package ru.ds.education.currency.controller;
 
 import lombok.SneakyThrows;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -9,13 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.ds.education.currency.ServiceApplicationTest;
+import ru.ds.education.currency.exception.ResourceNotFoundException;
 import ru.ds.education.currency.model.CursDataModel;
 import ru.ds.education.currency.repository.CurrencyRepository;
+import ru.ds.education.currency.repository.QueueAddCurrencyRepository;
 
 import javax.transaction.Transactional;
+import javax.validation.ConstraintViolationException;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,11 +30,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CurrencyControllerTest extends ServiceApplicationTest {
-
-    private final LocalDate currentDate = LocalDate.parse("22-06-2023", DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+    private final String currentDateString = "22-06-2023";
+    private final String invalidDateString = "22-06-202";
+    private final String presentedCurInDb = "MNT";
+    private final String notPresentedCurInDb = "XRP";
+    private final String notPresentedCurInDbInvalid = "UUU";
+    private final String invalidCur = "RUYTRIUE";
+    private final Long notPresentedId = 1L;
 
     @Autowired
     private CurrencyRepository currencyRepository;
+
+    @Autowired
+    private QueueAddCurrencyRepository queueAddCurrencyRepository;
+
     private Long currency1Id;
     private Long currency2Id;
     private Long currency3Id;
@@ -75,6 +89,19 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
 
     @Test
     @SneakyThrows
+    public void getAllCurrenciesTest() {
+        String responseJson = readFileFromResource("responses/getAllCurrenciesTestResponse.json");
+
+        mockMvc.perform(
+                        get(URI.create("/cur"))
+                                .characterEncoding("utf-8")
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().json(responseJson, false));
+    }
+
+    @Test
+    @SneakyThrows
     public void createCurrencyTest() {
         String responseJson = readFileFromResource("responses/createCurrencyTestResponse.json");
 
@@ -90,7 +117,7 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
 
     @Test
     @SneakyThrows
-    public void updateAttributeTest() {
+    public void updateCurrencyTest() {
         String responseJson = readFileFromResource("responses/updateCurrencyTestResponse.json");
 
         mockMvc.perform(
@@ -105,7 +132,7 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
 
     @Test
     @SneakyThrows
-    public void deleteAttributeTest() {
+    public void deleteCurrencyTest() {
         mockMvc.perform(
                         delete(URI.create("/cur/" + currency3Id))
                 )
@@ -113,6 +140,86 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
 
         Optional<CursDataModel> cursDataModel = currencyRepository.findById(currency3Id);
         assertFalse(cursDataModel.isPresent());
+    }
+
+    @Test
+    @SneakyThrows
+    public void getCurrencyByNameAndDateTest() {
+        String responseJson = readFileFromResource("responses/getCurrencyByNameAndDateTestResponse.json");
+
+        mockMvc.perform(
+                        get(URI.create("/cur/" + presentedCurInDb + "/" + currentDateString))
+                                .characterEncoding("utf-8")
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(content().json(responseJson, false));
+    }
+
+    @Test
+    @SneakyThrows
+    public void getCurrencyByNameAndDateFromApiTest() {
+        mockMvc.perform(
+                        get(URI.create("/cur/" + notPresentedCurInDb + "/" + currentDateString))
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        assertTrue(queueAddCurrencyRepository.existsByCurrencyNameAndCurrencyDate(notPresentedCurInDb, currentDate));
+    }
+
+    /*@Test
+    @SneakyThrows
+    public void getInvalidCurrencyByNameAndDateFromApiTest() {
+        mockMvc.perform(
+                        get(URI.create("/cur/" + notPresentedCurInDbInvalid + "/" + currentDateString))
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        assertTrue(queueAddCurrencyRepository.existsByCurrencyNameAndCurrencyDate(notPresentedCurInDbInvalid, currentDate));
+        Thread.sleep(5000);
+
+        assertFalse(currencyRepository.existsByCurrencyNameAndAndCursDate(notPresentedCurInDbInvalid, currentDate));
+    }*/
+
+    @Test
+    @SneakyThrows
+    public void getCurrencyByIdNotFoundExceptionTest() {
+        mockMvc.perform(
+                        get(URI.create("/cur/" + notPresentedId))
+                )
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(
+                        result -> assertTrue(
+                                result.getResolvedException() instanceof ResourceNotFoundException
+                        )
+                );
+    }
+
+    @Test
+    @SneakyThrows
+    public void getCurrencyByNameAndDateConstraintViolationExceptionTest() {
+        mockMvc.perform(
+                        get(URI.create("/cur/" + invalidCur + "/" + currentDateString))
+                )
+                .andExpect(MockMvcResultMatchers.status().isConflict())
+                .andExpect(
+                        result -> assertTrue(
+                                result.getResolvedException() instanceof ConstraintViolationException
+                        )
+                );
+    }
+
+    @Test
+    @SneakyThrows
+    public void getCurrencyByNameAndDateTimeParseExceptionTest() {
+        mockMvc.perform(
+                        get(URI.create("/cur/" + presentedCurInDb + "/" + invalidDateString))
+                )
+                .andExpect(MockMvcResultMatchers.status().isNotAcceptable())
+                .andExpect(
+                        result -> assertTrue(
+                                result.getResolvedException() instanceof DateTimeParseException
+                        )
+                );
     }
 
     @AfterAll

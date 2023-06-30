@@ -1,0 +1,20 @@
+[
+  {
+    "currencyName": "MNT",
+    "currencyCode": 496,
+    "curs": 0.02,
+    "cursDate": "2023-06-22"
+  },
+  {
+    "currencyName": "ILS",
+    "currencyCode": 376,
+    "curs": 23.36,
+    "cursDate": "2023-06-22"
+  },
+  {
+    "currencyName": "KZZ",
+    "currencyCode": 170,
+    "curs": 0.1,
+    "cursDate": "2023-06-22"
+  }
+]

@@ -30,9 +30,4 @@ public class QueueAddCurModel {
     @Column(name = "date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate currencyDate;
-
-    public QueueAddCurModel(String currencyName, LocalDate currencyDate) {
-        this.currencyName = currencyName;
-        this.currencyDate = currencyDate;
-    }
 }

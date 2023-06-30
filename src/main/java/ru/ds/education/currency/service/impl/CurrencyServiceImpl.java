@@ -1,8 +1,5 @@
 package ru.ds.education.currency.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +9,7 @@ import ru.ds.education.currency.dto.CursDataDto;
 import ru.ds.education.currency.exception.ResourceAlreadyExistException;
 import ru.ds.education.currency.exception.ResourceNotFoundException;
 import ru.ds.education.currency.mapper.MapperCurrency;
+import ru.ds.education.currency.mapper.MapperDate;
 import ru.ds.education.currency.model.CursDataModel;
 import ru.ds.education.currency.repository.CurrencyRepository;
 import ru.ds.education.currency.service.CurrencyService;
@@ -20,10 +18,8 @@ import ru.ds.education.currency.service.QueueAddCurService;
 import javax.json.Json;
 import javax.json.JsonObject;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import static ru.ds.education.currency.config.ActiveMQConfig.REQUEST_QUEUE;
 
@@ -36,6 +32,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     private final MapperCurrency mapper;
     private final QueueAddCurService queueAddCurService;
     private final JmsTemplate jmsTemplate;
+    private final MapperDate mapperDate;
 
     @Override
     public List<CursDataDto> getAllCurrencies() {
@@ -72,19 +69,13 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public CursDataDto getCurrencyByNameAndDate(String name, String date) {
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        LocalDate actualDate = LocalDate.parse(date, formatter);
+        LocalDate actualDate = mapperDate.makeDateFromString(date);
 
         CursDataModel cursDataModel = currencyRepository.findByCurrencyNameAndCursDate(name, actualDate);
 
         if (cursDataModel == null && !queueAddCurService.isExistQueuedCurrency(name, actualDate)) {
 
-            JsonObject jsonMessage = Json.createObjectBuilder()
-                    .add("name", name)
-                    .add("date", date)
-                    .build();
-
-            String message = jsonMessage.toString();
+            String message = makeStringJsonMessage(name, date);
 
             queueAddCurService.addQueuedCurrency(name, actualDate);
             jmsTemplate.convertAndSend(REQUEST_QUEUE, message);
@@ -149,6 +140,16 @@ public class CurrencyServiceImpl implements CurrencyService {
 
         log.info("Удаление валюты с id = " + id);
         currencyRepository.deleteById(id);
+    }
+
+    private String makeStringJsonMessage(String name, String date) {
+
+        JsonObject jsonMessage = Json.createObjectBuilder()
+                .add("name", name)
+                .add("date", date)
+                .build();
+
+        return jsonMessage.toString();
     }
 
 }

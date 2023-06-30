@@ -19,8 +19,12 @@ import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import ru.ds.education.currency.mapper.MapperCurrency;
+import ru.ds.education.currency.mapper.MapperDate;
+import ru.ds.education.currency.service.CurrencyService;
 
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @SpringBootTest
 @ContextConfiguration(
@@ -35,6 +39,10 @@ public class ServiceApplicationTest {
 
     @Autowired
     protected MapperCurrency mapper;
+
+    protected MapperDate mapperDate = new MapperDate();
+
+    protected final LocalDate currentDate = mapperDate.makeDateFromString("22-06-2023");
 
     protected MockMvc mockMvc;
 
