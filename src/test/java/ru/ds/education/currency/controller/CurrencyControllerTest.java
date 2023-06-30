@@ -166,6 +166,13 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
         assertTrue(queueAddCurrencyRepository.existsByCurrencyNameAndCurrencyDate(notPresentedCurInDb, currentDate));
     }
 
+    /**
+     * Тут еще наивно планировал, что оно заработает, пока не стал удалять, мало ли оно пригодится
+     *
+     * В верхнем методе было также, только с assertTrue, естественно выдавало false,
+     * оставил только проверку на наличие в базе сохраненных значений в очереди
+     * assertTrue(currencyRepository.existsByCurrencyNameAndAndCursDate(notPresentedCurInDb, currentDate));
+     */
     /*@Test
     @SneakyThrows
     public void getInvalidCurrencyByNameAndDateFromApiTest() {
