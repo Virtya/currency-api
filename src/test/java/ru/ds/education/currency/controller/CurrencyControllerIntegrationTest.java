@@ -1,7 +1,5 @@
 package ru.ds.education.currency.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.activemq.junit.EmbeddedActiveMQBroker;
 import org.junit.jupiter.api.AfterEach;
@@ -56,6 +54,6 @@ public class CurrencyControllerIntegrationTest extends ServiceApplicationTest {
 
         Thread.sleep(1500);
 
-        assertTrue(currencyRepository.existsByCurrencyNameAndAndCursDate(name, currentDate));
+        assertTrue(currencyRepository.existsByCurrencyNameAndCursDate(name, currentDate));
     }
 }

@@ -1,7 +1,6 @@
 package ru.ds.education.currency.controller;
 
 import lombok.SneakyThrows;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -13,13 +12,11 @@ import ru.ds.education.currency.ServiceApplicationTest;
 import ru.ds.education.currency.exception.ResourceNotFoundException;
 import ru.ds.education.currency.model.CursDataModel;
 import ru.ds.education.currency.repository.CurrencyRepository;
-import ru.ds.education.currency.repository.QueueAddCurrencyRepository;
+import ru.ds.education.currency.repository.CursRequestRepository;
 
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolationException;
 import java.net.URI;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
@@ -42,7 +39,7 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
     private CurrencyRepository currencyRepository;
 
     @Autowired
-    private QueueAddCurrencyRepository queueAddCurrencyRepository;
+    private CursRequestRepository queueAddCurrencyRepository;
 
     private Long currency1Id;
     private Long currency2Id;

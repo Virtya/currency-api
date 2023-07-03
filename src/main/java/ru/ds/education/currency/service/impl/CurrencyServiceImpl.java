@@ -3,23 +3,27 @@ package ru.ds.education.currency.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import ru.ds.education.currency.dto.CursDataDto;
+import ru.ds.education.currency.dto.CurrencyWithResponseCodeDto;
 import ru.ds.education.currency.exception.ResourceAlreadyExistException;
 import ru.ds.education.currency.exception.ResourceNotFoundException;
 import ru.ds.education.currency.mapper.MapperCurrency;
 import ru.ds.education.currency.mapper.MapperDate;
 import ru.ds.education.currency.model.CursDataModel;
+import ru.ds.education.currency.model.CursRequestModel;
 import ru.ds.education.currency.repository.CurrencyRepository;
 import ru.ds.education.currency.service.CurrencyService;
-import ru.ds.education.currency.service.QueueAddCurService;
+import ru.ds.education.currency.service.CursRequestService;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import static ru.ds.education.currency.config.ActiveMQConfig.REQUEST_QUEUE;
 
@@ -30,7 +34,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     private final CurrencyRepository currencyRepository;
     private final MapperCurrency mapper;
-    private final QueueAddCurService queueAddCurService;
+    private final CursRequestService cursRequestService;
     private final JmsTemplate jmsTemplate;
     private final MapperDate mapperDate;
 
@@ -67,25 +71,46 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @SneakyThrows
     @Override
-    public CursDataDto getCurrencyByNameAndDate(String name, String date) {
+    public CurrencyWithResponseCodeDto getCurrencyByNameAndDate(String name, String date) {
 
         LocalDate actualDate = mapperDate.makeDateFromString(date);
 
         CursDataModel cursDataModel = currencyRepository.findByCurrencyNameAndCursDate(name, actualDate);
 
-        if (cursDataModel == null && !queueAddCurService.isExistQueuedCurrency(name, actualDate)) {
+        if (cursDataModel == null) {
 
-            String message = makeStringJsonMessage(name, date);
+            if (cursRequestService.isExistQueuedCurrency(name, actualDate) &&
+                    cursRequestService.checkStatusNotFailed(name, actualDate)) {
+                return new CurrencyWithResponseCodeDto(null, HttpStatus.ACCEPTED);
+            }
 
-            queueAddCurService.addQueuedCurrency(name, actualDate);
+            String correlationId = (UUID.randomUUID().toString());
+
+            cursRequestService.addQueuedCurrency(name, actualDate, LocalDate.now(), correlationId);
+            cursRequestService.setStatus(name, actualDate, "CREATED");
+
+            CursRequestModel cursRequestModel = cursRequestService.getCursRequestByNameAndDate(name, actualDate).get();
+
+            String message = makeStringJsonMessage(
+                    name,
+                    date,
+                    cursRequestModel.getRequestDate().toString(),
+                    correlationId,
+                    cursRequestModel.getStatusModel().getStatusName()
+            );
+
             jmsTemplate.convertAndSend(REQUEST_QUEUE, message);
+            cursRequestService.setStatus(name, actualDate, "SENT");
 
             log.info("Отправка запроса в адаптер для имени " + name + " на дату " + date);
-            return null;
+
+            return new CurrencyWithResponseCodeDto(null, HttpStatus.NO_CONTENT);
         }
 
+        CursDataDto cursDataDto = mapper.map(cursDataModel, CursDataDto.class);
+
         log.info("Получение валюты с именем " + name + ", дата - " + date);
-        return mapper.map(cursDataModel, CursDataDto.class);
+        return new CurrencyWithResponseCodeDto(cursDataDto, HttpStatus.OK);
     }
 
     @Override
@@ -142,11 +167,15 @@ public class CurrencyServiceImpl implements CurrencyService {
         currencyRepository.deleteById(id);
     }
 
-    private String makeStringJsonMessage(String name, String date) {
+    private String makeStringJsonMessage(String name, String currencyDate, String requestDate,
+                                         String correlationId, String status) {
 
         JsonObject jsonMessage = Json.createObjectBuilder()
-                .add("name", name)
-                .add("date", date)
+                .add("currencyName", name)
+                .add("currencyDate", currencyDate)
+                .add("requestDate", requestDate)
+                .add("correlationId", correlationId)
+                .add("status", status)
                 .build();
 
         return jsonMessage.toString();

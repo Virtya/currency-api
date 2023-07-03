@@ -1,6 +1,7 @@
 package ru.ds.education.currency.service;
 
 import ru.ds.education.currency.dto.CursDataDto;
+import ru.ds.education.currency.dto.CurrencyWithResponseCodeDto;
 
 import java.util.List;
 
@@ -9,7 +10,7 @@ public interface CurrencyService {
 
     CursDataDto getCurrency(Long id);
 
-    CursDataDto getCurrencyByNameAndDate(String name, String date);
+    CurrencyWithResponseCodeDto getCurrencyByNameAndDate(String name, String date);
 
     CursDataDto addCurrency(CursDataDto newCur);
 

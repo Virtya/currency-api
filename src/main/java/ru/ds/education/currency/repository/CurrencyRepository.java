@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Repository
 public interface CurrencyRepository extends JpaRepository<CursDataModel, Long> {
     boolean existsByCurrencyName(String name);
-    boolean existsByCurrencyNameAndAndCursDate(String name, LocalDate date);
+    boolean existsByCurrencyNameAndCursDate(String name, LocalDate date);
     CursDataModel findByCurrencyName(String name);
     CursDataModel findByCurrencyNameAndCursDate(String name, LocalDate date);
     boolean existsByCurrencyCode(Integer currencyCode);

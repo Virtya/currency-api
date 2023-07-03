@@ -8,14 +8,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import ru.ds.education.currency.dto.CursDataDto;
+import ru.ds.education.currency.dto.CursRequestDto;
 import ru.ds.education.currency.mapper.MapperCurrency;
+import ru.ds.education.currency.mapper.MapperDate;
 import ru.ds.education.currency.model.CursDataModel;
+import ru.ds.education.currency.model.CursRequestModel;
 import ru.ds.education.currency.repository.CurrencyRepository;
-import ru.ds.education.currency.service.QueueAddCurService;
+import ru.ds.education.currency.service.CursRequestService;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import java.util.Optional;
 
 import static ru.ds.education.currency.config.ActiveMQConfig.RESPONSE_QUEUE;
 
@@ -26,9 +30,11 @@ public class CurrencyListener {
 
     private final CurrencyRepository currencyRepository;
 
-    private final QueueAddCurService queueAddCurService;
+    private final CursRequestService cursRequestService;
 
-    private final MapperCurrency mapper;
+    private final MapperCurrency mapperCurrency;
+
+    private final MapperDate mapperDate;
 
     private final ObjectMapper objectMapper;
 
@@ -40,24 +46,29 @@ public class CurrencyListener {
         JsonNode jsonNode = objectMapper.readTree(message);
 
         String name = jsonNode.get("currencyName").asText();
-        String date = jsonNode.get("currencyDate").asText();
+        String dateString = jsonNode.get("currencyDate").asText();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        LocalDate actualDate = LocalDate.parse(date, formatter);
+        LocalDate date = mapperDate.makeDateFromString(dateString);
 
-        CursDataDto cursDataDto =
-                new CursDataDto(
-                        name,
-                        null,
-                        jsonNode.get("currencyRate").asDouble(),
-                        actualDate
-        );
+        if (Objects.equals(jsonNode.get("correlationId").asText(), "error")) {
+            cursRequestService.setStatus(name, date, "FAILED");
+        } else {
+            cursRequestService.setStatus(name, date, "PROCESSED");
 
-        CursDataModel cursDataModel = mapper.map(cursDataDto, CursDataModel.class);
+            CursDataDto cursDataDto =
+                    new CursDataDto(
+                            name,
+                            null,
+                            jsonNode.get("currencyRate").asDouble(),
+                            date
+                    );
 
-        log.info("Добавление в базу значения валюты с именем " + cursDataModel.getCurrencyName() +
-                " на дату " + cursDataModel.getCursDate());
-        currencyRepository.save(cursDataModel);
-        queueAddCurService.deleteQueuedCurrency(name, actualDate);
+            CursDataModel cursDataModel = mapperCurrency.map(cursDataDto, CursDataModel.class);
+
+            log.info("Добавление в базу значения валюты с именем " + cursDataModel.getCurrencyName() +
+                    " на дату " + cursDataModel.getCursDate());
+            currencyRepository.save(cursDataModel);
+            cursRequestService.deleteQueuedCurrency(name, date);
+        }
     }
 }

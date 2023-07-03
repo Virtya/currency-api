@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.ds.education.currency.dto.CursDataDto;
+import ru.ds.education.currency.dto.CurrencyWithResponseCodeDto;
 import ru.ds.education.currency.service.CurrencyService;
 
 import javax.validation.Valid;
@@ -42,13 +43,13 @@ public class CurrencyController {
     )
     @GetMapping("/{name}/{date}")
     public ResponseEntity<CursDataDto> getCurrencyByNameAndDate(@PathVariable
-                                                                @Size(
-                                                                        min = 3, max = 3,
-                                                                        message = "Некорректное сокращение валюты"
-                                                                )
-                                                                String name,
-                                                                @PathVariable String date) {
-        return new ResponseEntity<>(currencyService.getCurrencyByNameAndDate(name, date), HttpStatus.OK);
+                                                                        @Size(
+                                                                                min = 3, max = 3,
+                                                                                message = "Некорректное сокращение валюты"
+                                                                        )
+                                                                        String name, @PathVariable String date) {
+        CurrencyWithResponseCodeDto currencyWithResponseCodeDto = currencyService.getCurrencyByNameAndDate(name, date);
+        return new ResponseEntity<>(currencyWithResponseCodeDto.getCursDataDto(), currencyWithResponseCodeDto.getStatus());
     }
 
     @Operation(summary = "Получение списка валют")

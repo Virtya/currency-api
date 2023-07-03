@@ -12,5 +12,12 @@
     <include file="migrations/V2023_06_29_14_00_alter_table_curs_numeric.sql" relativeToChangelogFile="true"/>
     <include file="migrations/V2023_06_29_17_20_create_table_queue_currency.sql" relativeToChangelogFile="true"/>
     <include file="migrations/V2023_06_30_11_30_alter_table_queue_add_date.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_03_12_00_alter_table_rename.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_03_12_10_alter_table_rename_date_to_curs_date.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_03_12_20_create_table_status.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_03_12_30_insert_into_table_status.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_03_13_00_alter_table_curs_request.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_03_13_30_create_sequence.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_03_13_40_alter_table_curs_request_sequence_id.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
