@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class StatusDto {
+public class Status {
 
     @Schema(description = "Информация о статусе", example = "PROCESSED")
     private String statusName;

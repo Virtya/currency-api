@@ -19,5 +19,6 @@
     <include file="migrations/V2023_07_03_13_00_alter_table_curs_request.sql" relativeToChangelogFile="true"/>
     <include file="migrations/V2023_07_03_13_30_create_sequence.sql" relativeToChangelogFile="true"/>
     <include file="migrations/V2023_07_03_13_40_alter_table_curs_request_sequence_id.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_04_15_30_insert_into_table_status_succeeded.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

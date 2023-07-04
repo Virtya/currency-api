@@ -1,4 +1,4 @@
-package ru.ds.education.currency.model;
+package ru.ds.education.currency.entity;
 
 import lombok.*;
 import org.codehaus.commons.nullanalysis.NotNull;
@@ -12,7 +12,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor(force = true)
 @Table(name = "status")
-public class StatusModel {
+public class StatusEntity {
 
     @Id
     @Column(name = "id")

@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.ds.education.currency.ServiceApplicationTest;
 import ru.ds.education.currency.exception.ResourceNotFoundException;
-import ru.ds.education.currency.model.CursDataModel;
+import ru.ds.education.currency.entity.CursDataEntity;
 import ru.ds.education.currency.repository.CurrencyRepository;
 import ru.ds.education.currency.repository.CursRequestRepository;
 
@@ -49,26 +49,26 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
     @Transactional
     public void initDb() {
         clearDb();
-        CursDataModel cursDataModel = new CursDataModel();
-        cursDataModel.setCurrencyName("MNT");
-        cursDataModel.setCurrencyCode(496);
-        cursDataModel.setCurs(0.02);
-        cursDataModel.setCursDate(currentDate);
-        currency1Id = currencyRepository.save(cursDataModel).getId();
+        CursDataEntity cursDataEntity = new CursDataEntity();
+        cursDataEntity.setCurrencyName("MNT");
+        cursDataEntity.setCurrencyCode(496);
+        cursDataEntity.setCurs(0.02);
+        cursDataEntity.setCursDate(currentDate);
+        currency1Id = currencyRepository.save(cursDataEntity).getId();
 
-        cursDataModel = new CursDataModel();
-        cursDataModel.setCurrencyName("KRW");
-        cursDataModel.setCurrencyCode(410);
-        cursDataModel.setCurs(0.06);
-        cursDataModel.setCursDate(currentDate);
-        currency2Id = currencyRepository.save(cursDataModel).getId();
+        cursDataEntity = new CursDataEntity();
+        cursDataEntity.setCurrencyName("KRW");
+        cursDataEntity.setCurrencyCode(410);
+        cursDataEntity.setCurs(0.06);
+        cursDataEntity.setCursDate(currentDate);
+        currency2Id = currencyRepository.save(cursDataEntity).getId();
 
-        cursDataModel = new CursDataModel();
-        cursDataModel.setCurrencyName("KZT");
-        cursDataModel.setCurrencyCode(398);
-        cursDataModel.setCurs(0.18);
-        cursDataModel.setCursDate(currentDate);
-        currency3Id = currencyRepository.save(cursDataModel).getId();
+        cursDataEntity = new CursDataEntity();
+        cursDataEntity.setCurrencyName("KZT");
+        cursDataEntity.setCurrencyCode(398);
+        cursDataEntity.setCurs(0.18);
+        cursDataEntity.setCursDate(currentDate);
+        currency3Id = currencyRepository.save(cursDataEntity).getId();
     }
 
     @Test
@@ -135,7 +135,7 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        Optional<CursDataModel> cursDataModel = currencyRepository.findById(currency3Id);
+        Optional<CursDataEntity> cursDataModel = currencyRepository.findById(currency3Id);
         assertFalse(cursDataModel.isPresent());
     }
 

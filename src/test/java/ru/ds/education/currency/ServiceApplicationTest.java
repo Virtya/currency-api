@@ -19,12 +19,9 @@ import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import ru.ds.education.currency.mapper.MapperCurrency;
-import ru.ds.education.currency.mapper.MapperDate;
-import ru.ds.education.currency.service.CurrencyService;
 
 import java.nio.file.Files;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @SpringBootTest
 @ContextConfiguration(

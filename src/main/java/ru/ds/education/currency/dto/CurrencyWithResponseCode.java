@@ -10,10 +10,10 @@ import org.springframework.http.HttpStatus;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class CurrencyWithResponseCodeDto {
+public class CurrencyWithResponseCode {
 
     @Schema(description = "Информация о валюте")
-    private CursDataDto cursDataDto;
+    private CursData cursData;
 
     @Schema(description = "Статус ответа", example = "OK")
     private HttpStatus status;

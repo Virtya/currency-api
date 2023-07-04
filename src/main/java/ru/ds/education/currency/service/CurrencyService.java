@@ -1,20 +1,20 @@
 package ru.ds.education.currency.service;
 
-import ru.ds.education.currency.dto.CursDataDto;
-import ru.ds.education.currency.dto.CurrencyWithResponseCodeDto;
+import ru.ds.education.currency.dto.CursData;
+import ru.ds.education.currency.dto.CurrencyWithResponseCode;
 
 import java.util.List;
 
 public interface CurrencyService {
-    List<CursDataDto> getAllCurrencies();
+    List<CursData> getAllCurrencies();
 
-    CursDataDto getCurrency(Long id);
+    CursData getCurrency(Long id);
 
-    CurrencyWithResponseCodeDto getCurrencyByNameAndDate(String name, String date);
+    CurrencyWithResponseCode getCurrencyByNameAndDate(String name, String date);
 
-    CursDataDto addCurrency(CursDataDto newCur);
+    CursData addCurrency(CursData newCur);
 
-    CursDataDto updateCurrency(Long id, CursDataDto newCur);
+    CursData updateCurrency(Long id, CursData newCur);
 
     void deleteCurrency(Long id);
 

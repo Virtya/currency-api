@@ -1,4 +1,4 @@
-package ru.ds.education.currency.model;
+package ru.ds.education.currency.entity;
 
 import lombok.*;
 import org.codehaus.commons.nullanalysis.NotNull;
@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor(force = true)
 @Table(name = "curs_request")
-public class CursRequestModel {
+public class CursRequestEntity {
 
     @Id
     @Column(name = "id")
@@ -38,5 +38,5 @@ public class CursRequestModel {
 
     @ManyToOne
     @JoinColumn(name = "status_id", referencedColumnName = "id")
-    private StatusModel statusModel;
+    private StatusEntity statusEntity;
 }

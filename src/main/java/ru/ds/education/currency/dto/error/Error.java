@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Schema(description = "Ошибка")
 @AllArgsConstructor
 @Data
-public class ErrorDto {
+public class Error {
 
     @Schema(description = "Описание ошибки", example = "Некорректный формат введённых данных")
     private String message;

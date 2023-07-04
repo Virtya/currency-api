@@ -1,25 +1,20 @@
 package ru.ds.education.currency.listener;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
-import ru.ds.education.currency.dto.CursDataDto;
-import ru.ds.education.currency.dto.CursRequestDto;
+import ru.ds.education.currency.dto.CursData;
+import ru.ds.education.currency.dto.ResponseMessage;
 import ru.ds.education.currency.mapper.MapperCurrency;
-import ru.ds.education.currency.mapper.MapperDate;
-import ru.ds.education.currency.model.CursDataModel;
-import ru.ds.education.currency.model.CursRequestModel;
-import ru.ds.education.currency.repository.CurrencyRepository;
+import ru.ds.education.currency.entity.CursDataEntity;
+import ru.ds.education.currency.service.CurrencyService;
 import ru.ds.education.currency.service.CursRequestService;
 
-import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.Optional;
 
 import static ru.ds.education.currency.config.ActiveMQConfig.RESPONSE_QUEUE;
 
@@ -28,47 +23,42 @@ import static ru.ds.education.currency.config.ActiveMQConfig.RESPONSE_QUEUE;
 @AllArgsConstructor
 public class CurrencyListener {
 
-    private final CurrencyRepository currencyRepository;
+    private final CurrencyService currencyService;
 
     private final CursRequestService cursRequestService;
 
-    private final MapperCurrency mapperCurrency;
-
-    private final MapperDate mapperDate;
+    private final MapperCurrency mapper;
 
     private final ObjectMapper objectMapper;
 
-    @Transactional
     @SneakyThrows
     @JmsListener(destination = RESPONSE_QUEUE)
     public void getCurrencyRequest(String message) {
 
-        JsonNode jsonNode = objectMapper.readTree(message);
+        ResponseMessage responseMessage = objectMapper.readValue(message, ResponseMessage.class);
 
-        String name = jsonNode.get("currencyName").asText();
-        String dateString = jsonNode.get("currencyDate").asText();
+        String correlationId = responseMessage.getCorrelationId();
 
-        LocalDate date = mapperDate.makeDateFromString(dateString);
-
-        if (Objects.equals(jsonNode.get("correlationId").asText(), "error")) {
-            cursRequestService.setStatus(name, date, "FAILED");
+        if (Objects.equals(responseMessage.getCurrencyRate(), "error")) {
+            cursRequestService.setStatus(correlationId, "FAILED");
         } else {
-            cursRequestService.setStatus(name, date, "PROCESSED");
+            cursRequestService.setStatus(correlationId, "PROCESSED");
 
-            CursDataDto cursDataDto =
-                    new CursDataDto(
-                            name,
+            CursDataEntity cursDataEntity =
+                    new CursDataEntity(
                             null,
-                            jsonNode.get("currencyRate").asDouble(),
-                            date
+                            responseMessage.getCurrencyName(),
+                            null,
+                            Double.parseDouble(responseMessage.getCurrencyRate()),
+                            mapper.map(responseMessage.getCurrencyDate(), LocalDate.class)
                     );
 
-            CursDataModel cursDataModel = mapperCurrency.map(cursDataDto, CursDataModel.class);
+            log.info("Добавление в базу значения валюты с именем " + cursDataEntity.getCurrencyName() +
+                    " на дату " + cursDataEntity.getCursDate());
 
-            log.info("Добавление в базу значения валюты с именем " + cursDataModel.getCurrencyName() +
-                    " на дату " + cursDataModel.getCursDate());
-            currencyRepository.save(cursDataModel);
-            cursRequestService.deleteQueuedCurrency(name, date);
+            currencyService.addCurrency(mapper.map(cursDataEntity, CursData.class));
+
+            cursRequestService.setStatus(correlationId, "SUCCEEDED");
         }
     }
 }

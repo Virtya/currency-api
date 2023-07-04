@@ -3,7 +3,9 @@ package ru.ds.education.currency.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.ds.education.currency.model.CursRequestModel;
+import ru.ds.education.currency.dto.CursRequest;
+import ru.ds.education.currency.entity.CursRequestEntity;
+import ru.ds.education.currency.mapper.MapperCurrency;
 import ru.ds.education.currency.repository.CursRequestRepository;
 import ru.ds.education.currency.repository.StatusRepository;
 import ru.ds.education.currency.service.CursRequestService;
@@ -17,12 +19,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CursRequestServiceImpl implements CursRequestService {
 
+    private final MapperCurrency mapper;
+
     private final CursRequestRepository cursRequestRepository;
 
     private final StatusRepository statusRepository;
 
     @Override
-    public Optional<CursRequestModel> getCursRequestByNameAndDate(String name, LocalDate date) {
+    public Optional<CursRequestEntity> getCursRequestByNameAndDate(String name, LocalDate date) {
         return cursRequestRepository.findByCurrencyNameAndCurrencyDate(name, date);
     }
 
@@ -32,18 +36,22 @@ public class CursRequestServiceImpl implements CursRequestService {
     }
 
     @Override
-    public void addQueuedCurrency(String name, LocalDate currencyDate, LocalDate requestDate, String correlationId) {
-        CursRequestModel cursRequestModel = new CursRequestModel();
-
-        cursRequestModel.setCurrencyName(name);
-        cursRequestModel.setCurrencyDate(currencyDate);
-        cursRequestModel.setRequestDate(requestDate);
-        cursRequestModel.setCorrelationId(correlationId);
-
-        cursRequestRepository.save(cursRequestModel);
+    public Optional<CursRequestEntity> findByNameAndDate(String name, LocalDate date) {
+        return cursRequestRepository.findByCurrencyNameAndCurrencyDate(name, date);
     }
 
     @Override
+    public CursRequest addQueuedCurrency(CursRequest cursRequest, String status) {
+        CursRequestEntity cursRequestEntity = mapper.map(cursRequest, CursRequestEntity.class);
+
+        cursRequestEntity.setStatusEntity(statusRepository.findByStatusName(status));
+
+        cursRequestRepository.save(cursRequestEntity);
+        return mapper.map(cursRequestEntity,CursRequest.class);
+    }
+
+    @Override
+    @Transactional
     public void deleteQueuedCurrency(String name, LocalDate date) {
         cursRequestRepository.deleteByCurrencyNameAndCurrencyDate(name, date);
     }
@@ -54,12 +62,18 @@ public class CursRequestServiceImpl implements CursRequestService {
     }
 
     @Override
+    public Optional<CursRequestEntity> findByMaxRequestDate(String name, LocalDate date, LocalDate requestDate) {
+        return cursRequestRepository.findByMaxRequestDate(name, date, requestDate);
+    }
+
+    @Override
     @Transactional
-    public void setStatus(String name, LocalDate date, String status) {
-        Optional<CursRequestModel> cursRequestModel = cursRequestRepository.findByCurrencyNameAndCurrencyDate(name, date);
-        if (cursRequestModel.isPresent()) {
-            cursRequestModel.get().setStatusModel(statusRepository.findByStatusName(status));
-            cursRequestRepository.save(cursRequestModel.get());
+    public void setStatus(String correlationId, String status) {
+        Optional<CursRequestEntity> cursRequestEntity = cursRequestRepository.findByCorrelationId(correlationId);
+
+        if (cursRequestEntity.isPresent()) {
+            cursRequestEntity.get().setStatusEntity(statusRepository.findByStatusName(status));
+            cursRequestRepository.save(cursRequestEntity.get());
         }
     }
 }

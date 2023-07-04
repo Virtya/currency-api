@@ -1,4 +1,4 @@
-package ru.ds.education.currency.model;
+package ru.ds.education.currency.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor(force = true)
 @Table(name = "curs_data")
-public class CursDataModel {
+public class CursDataEntity {
 
     @Id
     @Column(name = "id")
@@ -36,6 +36,5 @@ public class CursDataModel {
 
     @Nullable
     @Column(name = "curs_date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate cursDate;
 }
