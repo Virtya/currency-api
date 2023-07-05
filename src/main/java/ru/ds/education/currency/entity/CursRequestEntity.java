@@ -18,8 +18,7 @@ public class CursRequestEntity {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "curs_request_seq_gen")
-    @SequenceGenerator(name = "curs_request_seq_gen", sequenceName = "curs_request_seq", allocationSize = 1)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
     @NotNull

@@ -1,5 +1,6 @@
 package ru.ds.education.currency;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,10 +20,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
-import ru.ds.education.currency.mapper.MapperCurrency;
+import ru.ds.education.currency.repository.CurrencyRepository;
+import ru.ds.education.currency.repository.CursRequestRepository;
 
 import java.nio.file.Files;
-import java.time.LocalDate;
 
 @SpringBootTest
 @ContextConfiguration(
@@ -35,11 +37,16 @@ public class ServiceApplicationTest {
     private WebApplicationContext webApplicationContext;
 
     @Autowired
-    protected MapperCurrency mapper;
+    protected CurrencyRepository currencyRepository;
 
-    protected MapperDate mapperDate = new MapperDate();
+    @Autowired
+    protected CursRequestRepository cursRequestRepository;
 
-    protected final LocalDate currentDate = mapperDate.makeDateFromString("22-06-2023");
+    @Autowired
+    protected JmsTemplate jmsTemplate;
+
+    @Autowired
+    protected ObjectMapper objectMapper;
 
     protected MockMvc mockMvc;
 

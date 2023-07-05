@@ -40,6 +40,7 @@ public class CurrencyListener {
         String correlationId = responseMessage.getCorrelationId();
 
         if (Objects.equals(responseMessage.getCurrencyRate(), "error")) {
+            log.error("Ошибка добавления в базу значения для валюты " + responseMessage.getCurrencyName());
             cursRequestService.setStatus(correlationId, "FAILED");
         } else {
             cursRequestService.setStatus(correlationId, "PROCESSED");

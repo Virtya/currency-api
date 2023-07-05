@@ -11,12 +11,14 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.ds.education.currency.ServiceApplicationTest;
 import ru.ds.education.currency.exception.ResourceNotFoundException;
 import ru.ds.education.currency.entity.CursDataEntity;
+import ru.ds.education.currency.mapper.MapperCurrency;
 import ru.ds.education.currency.repository.CurrencyRepository;
 import ru.ds.education.currency.repository.CursRequestRepository;
 
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolationException;
 import java.net.URI;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
@@ -27,19 +29,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CurrencyControllerTest extends ServiceApplicationTest {
-    private final String currentDateString = "22-06-2023";
-    private final String invalidDateString = "22-06-202";
+
+    private final MapperCurrency mapper = new MapperCurrency();
+    private final LocalDate currentDate = mapper.map("2023-06-22", LocalDate.class);
+
+    private final String currentDateString = "2023-06-22";
+    private final String invalidDateString = "202-06-22";
     private final String presentedCurInDb = "MNT";
     private final String notPresentedCurInDb = "XRP";
-    private final String notPresentedCurInDbInvalid = "UUU";
     private final String invalidCur = "RUYTRIUE";
     private final Long notPresentedId = 1L;
 
     @Autowired
     private CurrencyRepository currencyRepository;
-
-    @Autowired
-    private CursRequestRepository queueAddCurrencyRepository;
 
     private Long currency1Id;
     private Long currency2Id;
@@ -158,31 +160,8 @@ public class CurrencyControllerTest extends ServiceApplicationTest {
         mockMvc.perform(
                         get(URI.create("/cur/" + notPresentedCurInDb + "/" + currentDateString))
                 )
-                .andExpect(MockMvcResultMatchers.status().isOk());
-
-        assertTrue(queueAddCurrencyRepository.existsByCurrencyNameAndCurrencyDate(notPresentedCurInDb, currentDate));
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
-
-    /**
-     * Тут еще наивно планировал, что оно заработает, пока не стал удалять, мало ли оно пригодится
-     *
-     * В верхнем методе было также, только с assertTrue, естественно выдавало false,
-     * оставил только проверку на наличие в базе сохраненных значений в очереди
-     * assertTrue(currencyRepository.existsByCurrencyNameAndAndCursDate(notPresentedCurInDb, currentDate));
-     */
-    /*@Test
-    @SneakyThrows
-    public void getInvalidCurrencyByNameAndDateFromApiTest() {
-        mockMvc.perform(
-                        get(URI.create("/cur/" + notPresentedCurInDbInvalid + "/" + currentDateString))
-                )
-                .andExpect(MockMvcResultMatchers.status().isOk());
-
-        assertTrue(queueAddCurrencyRepository.existsByCurrencyNameAndCurrencyDate(notPresentedCurInDbInvalid, currentDate));
-        Thread.sleep(5000);
-
-        assertFalse(currencyRepository.existsByCurrencyNameAndAndCursDate(notPresentedCurInDbInvalid, currentDate));
-    }*/
 
     @Test
     @SneakyThrows

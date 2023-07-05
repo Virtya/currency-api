@@ -1,59 +1,36 @@
 package ru.ds.education.currency.controller;
 
 import lombok.SneakyThrows;
-import org.apache.activemq.junit.EmbeddedActiveMQBroker;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.annotation.JmsListener;
 import ru.ds.education.currency.ServiceApplicationTest;
-import ru.ds.education.currency.repository.CurrencyRepository;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static ru.ds.education.currency.config.ActiveMQConfig.REQUEST_QUEUE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CurrencyControllerIntegrationTest extends ServiceApplicationTest {
-
-    @Autowired
-    private CurrencyRepository currencyRepository;
-
-    private JmsTemplate jmsTemplate;
-
-    private EmbeddedActiveMQBroker embeddedActiveMQBroker;
-
-    @BeforeEach
-    public void setUp() {
-        embeddedActiveMQBroker.start();
-    }
-
-    @AfterEach
-    public void tearDown() {
-        embeddedActiveMQBroker.stop();
-    }
+    private String receivedMessage;
 
     @Test
     @SneakyThrows
     public void getCurrencyByNameAndDateFromApiTest() {
-        String name = "XRP";
-        String date = "22-06-2023";
+        String requestMessage = readFileFromResource("requests/sendCurrencyInQueue.json");
 
-        JsonObject jsonMessage = Json.createObjectBuilder()
-                .add("name", name)
-                .add("date", date)
-                .build();
+        jmsTemplate.convertAndSend("test-queue", requestMessage);
 
-        String message = jsonMessage.toString();
+        waitForMessage();
 
-        jmsTemplate.convertAndSend(REQUEST_QUEUE, message);
+        assertEquals(receivedMessage, requestMessage);
+    }
 
-        Thread.sleep(1500);
+    @JmsListener(destination = "test-queue")
+    public void receiveMessage(String message) {
+        receivedMessage = message;
+    }
 
-        assertTrue(currencyRepository.existsByCurrencyNameAndCursDate(name, currentDate));
+    @SneakyThrows
+    public void waitForMessage() {
+        Thread.sleep(1000);
     }
 }

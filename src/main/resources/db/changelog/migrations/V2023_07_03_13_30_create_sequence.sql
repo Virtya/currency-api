@@ -1,3 +1,0 @@
-CREATE SEQUENCE IF NOT EXISTS curs_request_seq
-    START WITH 1
-    INCREMENT BY 1;
