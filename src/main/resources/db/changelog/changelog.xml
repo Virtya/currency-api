@@ -18,5 +18,9 @@
     <include file="migrations/V2023_07_03_12_30_insert_into_table_status.sql" relativeToChangelogFile="true"/>
     <include file="migrations/V2023_07_03_13_00_alter_table_curs_request.sql" relativeToChangelogFile="true"/>
     <include file="migrations/V2023_07_04_15_30_insert_into_table_status_succeeded.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_06_11_40_create_extension_for_uuid.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_06_11_50_added_generate_correlation.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_06_12_10_drop_column_id.sql" relativeToChangelogFile="true"/>
+    <include file="migrations/V2023_07_06_12_45_add_primary_to_correlation.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

@@ -1,0 +1,2 @@
+ALTER TABLE curs_request
+    DROP COLUMN IF EXISTS id;

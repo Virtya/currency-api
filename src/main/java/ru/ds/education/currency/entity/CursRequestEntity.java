@@ -6,6 +6,7 @@ import org.codehaus.commons.nullanalysis.Nullable;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -17,9 +18,8 @@ import java.time.LocalDate;
 public class CursRequestEntity {
 
     @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "correlation_id")
+    private String correlationId = UUID.randomUUID().toString();
 
     @NotNull
     @Column(name = "currency_name")
@@ -31,9 +31,6 @@ public class CursRequestEntity {
 
     @Column(name = "request_date")
     private LocalDate requestDate;
-
-    @Column(name = "correlation_id")
-    private String correlationId;
 
     @ManyToOne
     @JoinColumn(name = "status_id", referencedColumnName = "id")

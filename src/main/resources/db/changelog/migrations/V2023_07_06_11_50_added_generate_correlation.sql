@@ -1,0 +1,1 @@
+UPDATE curs_request SET correlation_id = uuid_generate_v4()::text;

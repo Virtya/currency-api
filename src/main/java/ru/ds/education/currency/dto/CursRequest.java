@@ -16,6 +16,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class CursRequest {
 
+    @Schema(description = "Идентификатор сообщения")
+    private String correlationId;
+
     @Size(min = 3, max = 3, message = "Некорректное сокращение валюты")
     @Schema(description = "Сокращённое название валюты", example = "USD")
     private String currencyName;
@@ -27,9 +30,6 @@ public class CursRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(description = "Дата отправки запроса о курсе валюты", example = "2023-06-21")
     private LocalDate requestDate;
-
-    @Schema(description = "Идентификатор сообщения")
-    private String correlationId;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Schema(description = "Статус сообщения")

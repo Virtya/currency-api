@@ -94,10 +94,10 @@ public class CurrencyServiceImpl implements CurrencyService {
 
             CursRequest cursRequest = cursRequestService.addQueuedCurrency(
                     new CursRequest(
+                            correlationId,
                             name,
                             actualDate,
                             LocalDate.now(),
-                            correlationId,
                             null),
                     "CREATED"
             );
