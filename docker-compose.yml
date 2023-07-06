@@ -1,0 +1,21 @@
+version: '1'
+services:
+  app:
+    container_name: currencyService
+    image: springboot-app
+    build: ./
+    ports:
+      - "8080:8080"
+    depends_on:
+      - currency_ds
+  currency_ds:
+    image: postgres
+    build:
+      context: ./
+      dockerfile: Dockerfile.postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - PGDATA=/var/lib/postgresql/data
+      - POSTGRES_PASSWORD=123Nikita2609
+      - POSTGRES_USER=postgres

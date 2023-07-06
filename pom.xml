@@ -15,6 +15,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <spring.main.sources>ru.ds.education.currency.ServiceApplication</spring.main.sources>
     </properties>
 
     <dependencies>
