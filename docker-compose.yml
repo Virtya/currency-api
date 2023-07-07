@@ -1,4 +1,4 @@
-version: '1'
+version: '3.8'
 services:
   app:
     container_name: currencyService
@@ -7,14 +7,17 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - currency_ds
-  currency_ds:
-    image: postgres
-    build:
-      context: ./
-      dockerfile: Dockerfile.postgres
-    ports:
-      - "5432:5432"
+      - db
+  db:
+    image: postgres:14.1-alpine
+    restart: always
     environment:
-      - POSTGRES_PASSWORD=123Nikita2609
       - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+volumes:
+  db:
+    driver: local
