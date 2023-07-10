@@ -140,6 +140,21 @@
                 </dependencies>
             </plugin>
 
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <to>
+                        <image>snapshots.registry.digital-spirit.ru/nzheltikov/currency-app:1.0.0-SNAPSHOT</image>
+                        <auth>
+                            <username>nzheltikov</username>
+                            <password>123Nikita2609</password>
+                        </auth>
+                    </to>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
