@@ -2,13 +2,12 @@ version: '3.8'
 services:
   app:
     container_name: currencyService
-    image: springboot-app
-    build: ./
+    image: currency-service:1.1
     ports:
       - "8080:8080"
     depends_on:
       - db
-      - activeMQueue
+      - activemq
   db:
     image: postgres:14.1-alpine
     restart: always
@@ -19,14 +18,14 @@ services:
       - '5432:5432'
     volumes:
       - db:/var/lib/postgresql/data
-  activeMQueue:
-    image: rmohr/activemq:5.15.9-alpine
+  activemq:
+    image: rmohr/activemq:5.14.0-alpine
     restart: always
     environment:
       - ACTIVEMQ_LOGIN=admin
       - ACTIVEMQ_PASSWORD=admin
     ports:
-      - '61616:61616'
+      - '61617:61616'
 volumes:
   db:
     driver: local

@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: currency-pod
+spec:
+  containers:
+    - name: currency-container
+      image: currency-service:1.1
+      ports:
+        - containerPort: 8080
+      env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: ACTIVEMQ_LOGIN
+          value: admin
+        - name: ACTIVEMQ_PASSWORD
+          value: admin
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 10
+        periodSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 20
+        periodSeconds: 10
+  volumes:
+    - name: db-volume
+      emptyDir: {}
+    - name: activemq-volume
+      emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: currency-service
+spec:
+  selector:
+    app: currency
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
