@@ -30,10 +30,11 @@ public class CurrencyController {
             description = "Получение валюты по id"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<CursData> getCurrencyById(@PathVariable
-                                                       @Min(value = 0,
-                                                            message = "Значение должно быть больше 0")
-                                                       Long id){
+    public ResponseEntity<CursData> getCurrencyById(
+        @PathVariable
+        @Min(value = 0, message = "Значение должно быть больше 0")
+        Long id
+    ){
         return new ResponseEntity<>(currencyService.getCurrency(id), HttpStatus.OK);
     }
 
@@ -42,12 +43,14 @@ public class CurrencyController {
             description = "Получение валюты по её названию и дате"
     )
     @GetMapping("/{name}/{date}")
-    public ResponseEntity<CursData> getCurrencyByNameAndDate(@PathVariable
-                                                                        @Size(
-                                                                                min = 3, max = 3,
-                                                                                message = "Некорректное сокращение валюты"
-                                                                        )
-                                                                        String name, @PathVariable String date) {
+    public ResponseEntity<CursData> getCurrencyByNameAndDate(
+        @PathVariable
+        @Size(min = 3, max = 3, message = "Некорректное сокращение валюты")
+        String name,
+
+        @PathVariable
+        String date
+    ) {
         CurrencyWithResponseCode currencyWithResponseCode = currencyService.getCurrencyByNameAndDate(name, date);
         return new ResponseEntity<>(currencyWithResponseCode.getCursData(), currencyWithResponseCode.getStatus());
     }
@@ -62,12 +65,19 @@ public class CurrencyController {
     @PostMapping
     public ResponseEntity<CursData> addCurrency(@RequestBody @Valid CursData currency){
         return new ResponseEntity<>(currencyService.addCurrency(currency), HttpStatus.CREATED);
-     }
+    }
 
     @Operation(summary = "Изменение валюты")
     @PutMapping ("/{id}")
-    public ResponseEntity<CursData> updateCurrency(@PathVariable @Min(value = 0, message = "Значение должно быть больше нуля") Long id,
-                                                   @RequestBody @Valid CursData currency){
+    public ResponseEntity<CursData> updateCurrency(
+        @PathVariable
+        @Min(value = 0, message = "Значение должно быть больше нуля")
+        Long id,
+
+        @RequestBody
+        @Valid
+        CursData currency
+    ){
         return new ResponseEntity<>(currencyService.updateCurrency(id, currency), HttpStatus.CREATED);
     }
 
