@@ -1,0 +1,16 @@
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database=
+
+spring.liquibase.change-log=classpath:db/changelog/changelog.xml
+
+spring.activemq.broker-url=
+spring.activemq.password=
+spring.activemq.user=
+
+logging.pattern.console=%msg%n
+logging.level.ru.ds.education.currency=debug
+logging.level.org.springframework=info

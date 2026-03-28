@@ -1,92 +1,357 @@
-# service
+# Currency API
 
+Микросервис на Spring Boot для управления курсами валют с асинхронной обработкой запросов и интеграцией через JMS.
 
+## 📋 Содержание
 
-## Getting started
+- [Обзор](#overview)
+- [Технологический стек](#tech-stack)
+- [Структура проекта](#project-structure)
+- [Функциональные возможности](#features)
+- [Схема базы данных](#database-schema)
+- [API Endpoints](#api-endpoints)
+- [Примеры запросов](#examples)
+- [Асинхронная обработка](#async-processing)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+---
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 🎯 Обзор {#overview}
 
-## Add your files
+Currency API — это RESTful веб-сервис, предоставляющий CRUD операции для управления курсами валют. Особенностью сервиса является асинхронная обработка запросов на получение курсов валют: если данные отсутствуют в локальной базе, сервис отправляет запрос через JMS очередь в адаптер `currency-cbr-adapter` и ожидает ответ, не блокируя основной поток выполнения.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+---
+
+## 🛠 Технологический стек {#tech-stack}
+
+| Технология      | Версия | Назначение            |
+|-----------------|--------|-----------------------|
+| Spring Boot     | 2.7.x  | Основной фреймворк    |
+| Java            | 11     | Язык программирования |
+| JPA/Hibernate   | -      | ORM для работы с БД   |
+| Flyway          | -      | Миграции базы данных  |
+| ActiveMQ        | -      | Очередь сообщений     |
+| Orika Mapper    | -      | Маппинг DTO/Entity    |
+| Swagger/OpenAPI | 3.0    | Документация API      |
+| Lombok          | -      | Упрощение кода        |
+| Gradle/Maven    | -      | Сборка проекта        |
+| PostgreSQL      | 13+    | База данных           |
+
+---
+
+## 📁 Структура проекта {#project-structure}
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.digital-spirit.ru/dev/ds-education-voronezh/nzheltikov/service.git
-git branch -M main
-git push -uf origin main
+ru.ds.education.currency/
+├── config/ # Конфигурационные классы
+│   ├── ActiveMQConfig.java # Настройка ActiveMQ
+├── controller/ # REST контроллеры
+│   └── CurrencyController.java # Основной контроллер
+├── dto/ # Data Transfer Objects
+│   ├── CursData.java # DTO для курса валюты
+│   ├── CursRequest.java # DTO для курса валюты
+│   ├── ResponseMessage.java # DTO для курса валюты
+│   ├── Status.java # DTO для хранения статуса
+│   └── CurrencyWithResponseCode.java # DTO с кодом ответа
+├── entity/ # Entity классы
+│   ├── CursDataEntity.java # Сущность курса валюты
+│   ├── StatusEntity.java # Сущность статуса
+│   └── CursRequestEntity.java # Сущность запроса
+├── exception/ # Кастомные исключения
+├── handler/ 
+|   ├── ControllerExceptionHandler.java # Перехватчик исключений
+├── listener/ 
+|   ├── CurrencyListener.java # Слушатель очереди
+├── mapper/ 
+├── repository/ # Spring Data репозитории
+│   ├── CurrencyRepository.java
+│   ├── StatusRepository.java
+│   └── CursRequestRepository.java
+├── service/ # Бизнес-логика
+│   ├── CurrencyService.java 
+│   ├── CursRequestServiceImpl.java 
+└── resources/
+   ├── application.yml # Конфигурация приложения
+   └── db/changelog/migrations/ # Скрипты миграции Flyway
 ```
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://gitlab.digital-spirit.ru/dev/ds-education-voronezh/nzheltikov/service/-/settings/integrations)
+## ✨ Функциональные возможности {#features}
 
-## Collaborate with your team
+### Базовый функционал
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+- **CRUD операции**: Полный набор операций для управления курсами валют
+- **Поиск по валюте и дате**: Получение курса валюты по коду и дате
+- **Миграции БД**: Автоматическое управление схемой через Flyway
+- **Маппинг DTO**: Безопасное преобразование Entity в DTO с помощью Orika
+- **Swagger документация**: Автоматически генерируемая документация API
 
-## Test and Deploy
+### Асинхронный функционал
 
-Use the built-in continuous integration in GitLab.
+- **Неблокирующие запросы**: Асинхронная обработка при отсутствии данных
+- **Интеграция через JMS**: Взаимодействие с адаптером через очереди ActiveMQ
+- **Отслеживание статуса**: Мониторинг состояния запросов
+- **Обработка ошибок**: Автоматическое обновление статуса при сбоях
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+---
 
-***
+## 🗄 Схема базы данных {#database-schema}
 
-# Editing this README
+### Таблица: `curs_data`
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```sql
+CREATE TABLE IF NOT EXISTS curs_data (
+    id bigint PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
+    currency_name VARCHAR(3) NOT NULL,
+    currency_code NUMERIC(3) NOT NULL,
+    curs NUMERIC(5, 2) NOT NULL,
+    curs_date DATE
+)
+```
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```sql
+CREATE TABLE status (
+    id bigint PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
+    status_name VARCHAR(20) NOT NULL
+);
+```
 
-## Name
-Choose a self-explaining name for your project.
+```sql
+CREATE TABLE IF NOT EXISTS queue_currency (
+    id bigint PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
+    currency_name VARCHAR(3) NOT NULL
+)
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Статусы запросов
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+| Статус       | Описание                             |
+|--------------|--------------------------------------|
+| CREATED      | Запрос создан, ожидает отправки      |
+| SENT         | Сообщение отправлено в очередь       |
+| PROCESSED    | Ответ получен, данные обрабатываются |
+| FAILED       | Произошла ошибка при обработке       |
+| SUCCEEDED    | Запрос выполнен успешно              |
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+---
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## 📡 API Endpoints {#api-endpoints}
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+**Базовый путь:** `/cur`
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+| Метод   | Endpoint           | Описание                                      | Коды ответа              |
+|---------|--------------------|-----------------------------------------------|--------------------------|
+| GET     | `/{id}`            | Получение валюты по ID                         | 200 OK                   |
+| GET     | `/{name}/{date}`   | Получение курса по коду валюты и дате          | 200 OK / 202 Accepted    |
+| GET     | `/`                | Получение списка всех валют                    | 200 OK                   |
+| POST    | `/`                | Добавление новой валюты                        | 201 Created              |
+| PUT     | `/{id}`            | Обновление валюты                              | 201 Created              |
+| DELETE  | `/{id}`            | Удаление валюты                                | 200 OK                   |
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+---
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## 📝 Примеры запросов {#examples}
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### 1. Получение курса валюты по ID
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```bash
+GET http://localhost:8080/cur/1
+```
 
-## License
-For open source projects, say how it is licensed.
+**Ответ (200 ОК):**
+```json
+{
+  "id": 1,
+  "currency": "USD",
+  "currencyCode": 840,
+  "curs": 92.50,
+  "cursDate": "2024-01-15"
+}
+```
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### 2. Получение курса по коду валюты и дате (данные есть)
+
+```bash
+GET http://localhost:8080/cur/USD/2024-01-15
+```
+
+**Ответ (200 ОК):**
+```json
+{
+  "id": 1,
+  "currency": "USD",
+  "currencyCode": 840,
+  "curs": 92.50,
+  "cursDate": "2024-01-15"
+}
+```
+
+### 3. Получение курса по коду валюты и дате (данных нет)
+
+```bash
+GET http://localhost:8080/cur/EUR/2024-03-20
+```
+
+**Ответ (202 ACCEPTED):**
+```http
+HTTP/1.1 202 Accepted
+Content-Length: 0
+```
+
+### 4. Добавление новой валюты
+
+```bash
+POST http://localhost:8080/cur
+Content-Type: application/json
+
+{
+  "currency": "EUR",
+  "currencyCode": 978,
+  "curs": 98.75,
+  "cursDate": "2024-01-15"
+}
+```
+
+**Ответ (201 CREATED):**
+```json
+{
+  "id": 2,
+  "currency": "EUR",
+  "currencyCode": 978,
+  "curs": 98.75,
+  "cursDate": "2024-01-15"
+}
+```
+
+### 5. Обновление курса валюты
+
+```bash
+PUT http://localhost:8080/cur/1
+Content-Type: application/json
+
+{
+  "currency": "USD",
+  "currencyCode": 840,
+  "curs": 93.20,
+  "cursDate": "2024-01-16"
+}
+```
+
+**Ответ (201 CREATED):**
+```json
+{
+  "id": 1,
+  "currency": "USD",
+  "currencyCode": 840,
+  "curs": 93.20,
+  "cursDate": "2024-01-16"
+}
+```
+
+### 6. Получение списка всех валют
+
+```bash
+GET http://localhost:8080/cur
+```
+
+**Ответ (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "currency": "USD",
+    "currencyCode": 840,
+    "curs": 93.20,
+    "cursDate": "2024-01-16"
+  },
+  {
+    "id": 2,
+    "currency": "EUR",
+    "currencyCode": 978,
+    "curs": 98.75,
+    "cursDate": "2024-01-15"
+  }
+]
+```
+
+### 7. Удаление валюты
+
+```bash
+DELETE http://localhost:8080/cur/1
+```
+
+**Ответ (200 OK):** Пустое тело
+
+---
+
+## 🔄 Асинхронная обработка {#async-processing}
+
+### Блок-схема процесса
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                     GET /{name}/{date}                          │
+└─────────────────────────────┬───────────────────────────────────┘
+                              ▼
+                    ┌────────────────────┐
+                    │ Проверка curs_data │
+                    └─────────┬──────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+      ┌───────────────┐               ┌───────────────┐
+      │ Данные есть   │               │ Данных нет    │
+      └───────┬───────┘               └───────┬───────┘
+              │                               │
+              ▼                               ▼
+      ┌───────────────┐               ┌──────────────────────┐
+      │ 200 OK        │               │ Проверка curs_request│
+      │ + данные      │               └─────────┬────────────┘
+      └───────────────┘                         │
+                                  ┌─────────────┴─────────────┐
+                                  │                           │
+                                  ▼                           ▼
+                          ┌───────────────┐           ┌───────────────┐
+                          │ Активный      │           │ Нет активного │
+                          │ запрос есть   │           │ запроса       │
+                          └───────┬───────┘           └───────┬───────┘
+                                  │                           │
+                                  ▼                           ▼
+                          ┌───────────────┐           ┌───────────────────┐
+                          │ 202 Accepted  │           │ Создание записи   │
+                          │ (пустое тело) │           │ status: CREATED   │
+                          └───────────────┘           └─────────┬─────────┘
+                                                                │
+                                                                ▼
+                                                    ┌───────────────────┐
+                                                    │ Отправка в очередь│
+                                                    │ status: SENT      │
+                                                    └─────────┬─────────┘
+                                                              │
+                                                              ▼
+                                                    ┌───────────────────┐
+                                                    │ Асинхронное       │
+                                                    │ ожидание ответа   │
+                                                    │ timeout: 10 сек   │
+                                                    └─────────┬─────────┘
+                                                              │
+                                              ┌───────────────┴───────────────┐
+                                              │                               │
+                                              ▼                               ▼
+                                      ┌───────────────┐               ┌───────────────┐
+                                      │ Успех         │               │ Ошибка/       │
+                                      │               │               │ таймаут       │
+                                      └───────┬───────┘               └───────┬───────┘
+                                              │                               │
+                                              ▼                               ▼
+                                      ┌───────────────┐               ┌───────────────┐
+                                      │ Обновление    │               │ status:       │
+                                      │ curs_data     │               │ FAILED        │
+                                      │ status:       │               │ (асинхронно)  │
+                                      │ PROCESSED →   │               └───────────────┘
+                                      │ SUCCEEDED     │
+                                      └───────────────┘
+```
